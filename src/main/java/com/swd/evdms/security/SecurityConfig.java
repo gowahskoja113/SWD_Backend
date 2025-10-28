@@ -39,7 +39,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        .requestMatchers("api/**").hasAnyRole("EVMSTAFF", "EVMMANAGER")
+                        .requestMatchers("/api/**").hasAnyAuthority("manager", "staff")
 
                         .requestMatchers(
                                 "/swagger-ui/**",
