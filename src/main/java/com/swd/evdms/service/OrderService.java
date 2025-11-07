@@ -30,8 +30,8 @@ public class OrderService {
         User currentUser = authUtil.getCurrentUser(); // lấy user hiện tại
         Order order = orderMapper.toEntity(request);
 
-        ElectricVehicle vehicle = vehicleRepository.findById(
-                        Math.toIntExact(request.getVehicleId()))
+        ElectricVehicle vehicle = vehicleRepository.findById
+                        (request.getVehicleId())
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
 
         order.setUser(currentUser);
@@ -60,14 +60,14 @@ public class OrderService {
 
     // ✅ Lấy đơn hàng theo ID (có kiểm tra quyền)
     public OrderResponse getOrderById(Long id) {
-        Order order = orderRepository.findById(Math.toIntExact(id))
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         return orderMapper.toResponse(order);
     }
 
     // ✅ Cập nhật trạng thái (manager hoặc staff)
     public OrderResponse updateOrderStatus(Long id, String status) {
-        Order order = orderRepository.findById(Math.toIntExact(id))
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         order.setStatus(status);
         return orderMapper.toResponse(orderRepository.save(order));
@@ -75,6 +75,6 @@ public class OrderService {
 
     // ✅ Xóa đơn hàng
     public void deleteOrder(Long id) {
-        orderRepository.deleteById(Math.toIntExact(id));
+        orderRepository.deleteById(id);
     }
 }

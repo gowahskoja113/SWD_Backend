@@ -32,4 +32,5 @@ public class ElectricVehicle {
     @ManyToOne
     @JoinColumn(name = "discount_id")
     private DiscountPolicy discountPolicy;
+
 }
