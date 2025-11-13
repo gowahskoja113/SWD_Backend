@@ -1,6 +1,7 @@
 package com.swd.evdms.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,6 +20,12 @@ public class ManufacturerOrder {
     private LocalDateTime etaAtDealer;
     private String note;
 
+    @ManyToOne
+    @JoinColumn(name = "model_id")
+    private ElectricVehicle model;
+
+    private Integer quantity;
+
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
 
@@ -35,9 +42,12 @@ public class ManufacturerOrder {
     public void setEtaAtDealer(LocalDateTime etaAtDealer) { this.etaAtDealer = etaAtDealer; }
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
+    public ElectricVehicle getModel() { return model; }
+    public void setModel(ElectricVehicle model) { this.model = model; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
-

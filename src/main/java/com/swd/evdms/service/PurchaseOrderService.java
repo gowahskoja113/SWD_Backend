@@ -35,19 +35,12 @@ public class PurchaseOrderService {
         }
         po.setNote(req.note);
         po.setStatus("DRAFT");
-        ManufacturerOrder saved = poRepo.save(po);
-
-        if (req.modelId != null && req.quantity != null && req.quantity > 0) {
+        if (req.modelId != null) {
             ElectricVehicle model = modelRepo.findById(req.modelId).orElseThrow(() -> new RuntimeException("Model not found"));
-            for (int i = 0; i < req.quantity; i++) {
-                VehicleUnit u = new VehicleUnit();
-                u.setModel(model);
-                u.setStatus("ON_ORDER");
-                u.setPurchaseOrder(saved);
-                unitRepo.save(u);
-            }
+            po.setModel(model);
         }
-
+        if (req.quantity != null) po.setQuantity(req.quantity);
+        ManufacturerOrder saved = poRepo.save(po);
         return toDto(saved);
     }
 
@@ -57,6 +50,24 @@ public class PurchaseOrderService {
 
     public PurchaseOrderResponse updateStatus(Long id, String status) {
         ManufacturerOrder po = poRepo.findById(id).orElseThrow(() -> new RuntimeException("PO not found"));
+        String current = po.getStatus();
+        // Do not allow cancelling after confirmed
+        if ("CONFIRMED".equalsIgnoreCase(current) && !"CONFIRMED".equalsIgnoreCase(status)) {
+            throw new RuntimeException("Cannot change status after CONFIRMED");
+        }
+        // On confirm: generate vehicle units once
+        if ("CONFIRMED".equalsIgnoreCase(status) && !"CONFIRMED".equalsIgnoreCase(current)) {
+            if (po.getModel() == null || po.getQuantity() == null || po.getQuantity() <= 0) {
+                throw new RuntimeException("PO missing model or quantity");
+            }
+            for (int i = 0; i < po.getQuantity(); i++) {
+                VehicleUnit u = new VehicleUnit();
+                u.setModel(po.getModel());
+                u.setStatus("ON_ORDER");
+                u.setPurchaseOrder(po);
+                unitRepo.save(u);
+            }
+        }
         po.setStatus(status);
         return toDto(poRepo.save(po));
     }

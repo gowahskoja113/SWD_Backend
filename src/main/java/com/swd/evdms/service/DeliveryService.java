@@ -34,26 +34,16 @@ public class DeliveryService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         entity.setOrder(order);
 
-        if (req.getVehicleUnitId() != null) {
-            var unit = unitRepository.findById(req.getVehicleUnitId())
-                    .orElseThrow(() -> new RuntimeException("Vehicle unit not found"));
-            entity.setVehicleUnit(unit);
-            entity.setVehicle(unit.getModel());
-        } else if (req.getVehicleId() != null) {
-            var vehicle = vehicleRepository.findById(req.getVehicleId())
-                    .orElseThrow(() -> new RuntimeException("Vehicle not found"));
-            entity.setVehicle(vehicle);
-        } else {
-            // Nếu có field available:
-            var vehicle = (req.getVehicleId() != null)
-                    ? vehicleRepository.findById(req.getVehicleId())
-                    .orElseThrow(() -> new RuntimeException("Vehicle not found"))
-                    : vehicleRepository.findFirstByOrderByIdAsc()
-                    .orElseThrow(() -> new RuntimeException("No available vehicle"));
-            entity.setVehicle(vehicle);
+        if (req.getVehicleUnitId() == null) {
+            throw new RuntimeException("vehicleUnitId is required");
         }
+        var unit = unitRepository.findById(req.getVehicleUnitId())
+                .orElseThrow(() -> new RuntimeException("Vehicle unit not found"));
+        entity.setVehicleUnit(unit);
+        entity.setVehicle(unit.getModel());
 
-        if (entity.getStatus() == null) entity.setStatus("Pending");
+        // Always start as Pending regardless of request
+        entity.setStatus("Pending");
         entity.setDeliveryDate(java.time.LocalDateTime.now());
 
         // Prefill from order if not provided in request

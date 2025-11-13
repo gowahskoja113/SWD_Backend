@@ -39,6 +39,9 @@ public class VehicleUnitController {
     @PatchMapping("/{id}/arrive")
     public ResponseEntity<VehicleUnit> markArrived(@PathVariable Long id) {
         VehicleUnit u = unitRepo.findById(id).orElseThrow(() -> new RuntimeException("Unit not found"));
+        if ("DELIVERED".equalsIgnoreCase(u.getStatus())) {
+            throw new RuntimeException("Cannot mark arrived: vehicle already delivered");
+        }
         u.setStatus("AT_DEALER");
         u.setArrivedAt(LocalDateTime.now());
         return ResponseEntity.ok(unitRepo.save(u));
@@ -47,6 +50,9 @@ public class VehicleUnitController {
     @PatchMapping("/{id}/vin")
     public ResponseEntity<VehicleUnit> setVin(@PathVariable Long id, @RequestParam String vin) {
         VehicleUnit u = unitRepo.findById(id).orElseThrow(() -> new RuntimeException("Unit not found"));
+        if ("DELIVERED".equalsIgnoreCase(u.getStatus())) {
+            throw new RuntimeException("Cannot set VIN: vehicle already delivered");
+        }
         if (vin == null || vin.isBlank()) throw new RuntimeException("VIN required");
         var existed = unitRepo.findByVin(vin).orElse(null);
         if (existed != null && !existed.getId().equals(id)) {
