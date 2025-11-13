@@ -3,6 +3,7 @@ package com.swd.evdms.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,5 +37,6 @@ public class DiscountPolicy {
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
     @OneToMany(mappedBy = "discountPolicy", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<ElectricVehicle> vehicles;
 }

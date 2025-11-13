@@ -2,6 +2,7 @@ package com.swd.evdms.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,9 +26,11 @@ public class ElectricVehicle {
     private Brand brand;
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Order> orders = new ArrayList<>();
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<VehicleStock> vehicleStocks = new ArrayList<>();
     @ManyToOne
     @JoinColumn(name = "discount_id")

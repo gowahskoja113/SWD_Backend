@@ -13,4 +13,10 @@ public class DeliveryResponse {
     private String vehicleName;
     private LocalDateTime deliveryDate;
     private String status;
+    private Long vehicleUnitId;
+    private String customerName;
+    private java.math.BigDecimal priceBefore;
+    private java.math.BigDecimal discountApplied;
+    private java.math.BigDecimal priceAfter;
+    private java.math.BigDecimal deposit;
 }

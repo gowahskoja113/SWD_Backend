@@ -2,8 +2,8 @@ package com.swd.evdms.entity;
 
 
 import jakarta.persistence.*;
-import jdk.jfr.Enabled;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,5 +20,6 @@ public class Brand {
     private String name;
 
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<ElectricVehicle> vehicles = new ArrayList<>();
 }

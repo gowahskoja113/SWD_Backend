@@ -11,6 +11,7 @@ import java.util.List;
 public interface DeliveryMapper {
     @Mapping(source = "order.id",   target = "orderId")
     @Mapping(source = "vehicle.id", target = "vehicleId")
+    @Mapping(source = "vehicleUnit.id", target = "vehicleUnitId")
     // ĐỪNG dùng vehicle.name nếu ElectricVehicle không có field này!
     // Nếu muốn hiển thị tên xe, tạm map từ order.brand (có thật trong Order):
     @Mapping(source = "order.brand", target = "vehicleName")
@@ -21,12 +22,14 @@ public interface DeliveryMapper {
     @Mapping(target = "id",           ignore = true)
     @Mapping(target = "order",        ignore = true)
     @Mapping(target = "vehicle",      ignore = true)
+    @Mapping(target = "vehicleUnit",  ignore = true)
     @Mapping(target = "deliveryDate", ignore = true)
     Delivery toEntity(DeliveryRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "order",        ignore = true)
     @Mapping(target = "vehicle",      ignore = true)
+    @Mapping(target = "vehicleUnit",  ignore = true)
     @Mapping(target = "deliveryDate", ignore = true)
     void updateEntity(@MappingTarget Delivery target, DeliveryRequest source);
 }

@@ -23,7 +23,9 @@ public class JpaUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getRoleName());
+        String roleName = user.getRole().getRoleName();
+        if (roleName == null) roleName = "";
+        GrantedAuthority authority = new SimpleGrantedAuthority(roleName.trim().toLowerCase());
 
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),

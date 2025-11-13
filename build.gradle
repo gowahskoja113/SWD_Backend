@@ -9,6 +9,12 @@ version = '0.0.1-SNAPSHOT'
 description = 'Project for HeathCareSystem'
 sourceCompatibility = '21'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -21,6 +27,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre11'
+
+    // In-memory DB for quick local testing
+    runtimeOnly 'com.h2database:h2'
 
     implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
