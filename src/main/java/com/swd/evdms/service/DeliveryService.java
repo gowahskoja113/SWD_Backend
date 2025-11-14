@@ -57,14 +57,18 @@ public class DeliveryService {
             entity.setCustomerName(order.getCustomerInfo());
         }
 
-        if (req.getPriceBefore() != null) {
+        if (order.getPriceAfter() != null && order.getPrice() != null) {
+            entity.setPriceBefore(order.getPrice());
+            entity.setDiscountApplied(order.getPrice().subtract(order.getPriceAfter()));
+            entity.setPriceAfter(order.getPriceAfter());
+        } else if (req.getPriceBefore() != null) {
             entity.setPriceBefore(req.getPriceBefore());
         } else if (order.getPrice() != null) {
             entity.setPriceBefore(order.getPrice());
         }
 
         if (req.getDeposit() != null) entity.setDeposit(req.getDeposit());
-        if (req.getVoucherCode() != null && !req.getVoucherCode().isBlank() && entity.getPriceBefore() != null) {
+        if ((order.getPriceAfter() == null || order.getPrice() == null) && req.getVoucherCode() != null && !req.getVoucherCode().isBlank() && entity.getPriceBefore() != null) {
             Voucher v = voucherRepository.findByCodeIgnoreCase(req.getVoucherCode()).orElse(null);
             if (v != null && Boolean.TRUE.equals(v.getActive()) && isVoucherUsable(v)) {
                 BigDecimal discount = computeDiscount(v, entity.getPriceBefore());
@@ -73,7 +77,7 @@ public class DeliveryService {
             } else {
                 entity.setPriceAfter(entity.getPriceBefore());
             }
-        } else if (entity.getPriceBefore() != null) {
+        } else if (entity.getPriceBefore() != null && entity.getPriceAfter() == null) {
             entity.setPriceAfter(entity.getPriceBefore());
         }
 

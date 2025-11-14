@@ -42,6 +42,9 @@ public class VehicleUnitController {
         if ("DELIVERED".equalsIgnoreCase(u.getStatus())) {
             throw new RuntimeException("Cannot mark arrived: vehicle already delivered");
         }
+        if ("AT_DEALER".equalsIgnoreCase(u.getStatus())) {
+            throw new RuntimeException("Vehicle already at dealer");
+        }
         u.setStatus("AT_DEALER");
         u.setArrivedAt(LocalDateTime.now());
         return ResponseEntity.ok(unitRepo.save(u));

@@ -12,5 +12,6 @@ public class OrderRequest {
     private String customerInfo;
     private String brand;
     private BigDecimal price;
+    private String voucherCode;
     private LocalDate deliveryDate;
 }

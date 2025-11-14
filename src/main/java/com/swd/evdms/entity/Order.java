@@ -23,6 +23,12 @@ public class Order {
     private ElectricVehicle vehicle;
 
     private BigDecimal price;
+    private BigDecimal priceAfter;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal discountApplied;
+
+    private String voucherCode;
 
     private LocalDate deliveryDate;
 

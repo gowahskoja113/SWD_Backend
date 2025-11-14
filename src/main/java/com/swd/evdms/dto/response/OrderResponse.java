@@ -17,6 +17,9 @@ public class OrderResponse {
     private String customerInfo;
     private String brand;
     private BigDecimal price;
+    private BigDecimal priceAfter;
+    private BigDecimal discountApplied;
+    private String voucherCode;
 
 
 }
