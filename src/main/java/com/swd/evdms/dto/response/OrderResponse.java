@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class OrderResponse {
@@ -20,6 +21,8 @@ public class OrderResponse {
     private BigDecimal priceAfter;
     private BigDecimal discountApplied;
     private String voucherCode;
+    private LocalDate deliveryDate;
+    private LocalDateTime createdAt;
 
 
 }

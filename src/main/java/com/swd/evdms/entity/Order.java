@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -31,6 +32,12 @@ public class Order {
     private String voucherCode;
 
     private LocalDate deliveryDate;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PreUpdate
+    public void touch() { this.updatedAt = LocalDateTime.now(); }
 
     @Column(name = "customer_info", length = 255)
     private String customerInfo;
