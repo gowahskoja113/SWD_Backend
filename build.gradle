@@ -28,10 +28,8 @@ dependencies {
 
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre11'
 
-    // In-memory DB for quick local testing
+    // In-memory DB (H2) for local and Railway testing
     runtimeOnly 'com.h2database:h2'
-    // PostgreSQL driver for production (Railway/Neon/etc.)
-    runtimeOnly 'org.postgresql:postgresql:42.7.4'
 
     implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
