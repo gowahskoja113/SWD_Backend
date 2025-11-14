@@ -84,7 +84,11 @@ public class SecurityConfig {
         // Allow common dev origins; adjust as needed
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
-                "http://127.0.0.1:*"
+                "https://localhost:*",
+                "http://127.0.0.1:*",
+                // Frontend production origins
+                "https://swddb.vercel.app",
+                "https://*.vercel.app"
         ));
         config.setAllowedMethods(Arrays.asList("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization","Content-Type","Accept","Origin","X-Requested-With"));
