@@ -14,6 +14,7 @@ import com.swd.evdms.entity.Voucher;
 import com.swd.evdms.repository.VoucherRepository;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -43,11 +44,24 @@ public class DeliveryService {
         }
         var unit = unitRepository.findById(req.getVehicleUnitId())
                 .orElseThrow(() -> new RuntimeException("Vehicle unit not found"));
+        // Guard: unit must be available at dealer
+        if (unit.getStatus() == null || !"AT_DEALER".equalsIgnoreCase(unit.getStatus())) {
+            throw new RuntimeException("Vehicle unit is not at dealer");
+        }
         entity.setVehicleUnit(unit);
         entity.setVehicle(unit.getModel());
 
-        // Always start as Pending regardless of request
-        entity.setStatus("Pending");
+        // Guard: unit model must match order vehicle
+        if (order.getVehicle() != null && unit.getModel() != null) {
+            Long ov = order.getVehicle().getId();
+            Long um = unit.getModel().getId();
+            if (ov != null && um != null && !ov.equals(um)) {
+                throw new RuntimeException("Selected vehicle unit does not match order model");
+            }
+        }
+
+        // Always start as PENDING regardless of request (normalized)
+        entity.setStatus("PENDING");
         entity.setDeliveryDate(java.time.LocalDateTime.now());
 
         // Prefill from order if not provided in request
@@ -84,12 +98,15 @@ public class DeliveryService {
         return deliveryMapper.toResponse(deliveryRepository.save(entity));
     }
 
+    @Transactional
     public DeliveryResponse updateStatus(Long id, String status) {
         var entity = deliveryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Delivery not found"));
+        // normalize target/current statuses
+        String target = status == null ? "" : status.toUpperCase();
+        String current = entity.getStatus() == null ? "" : entity.getStatus().toUpperCase();
         // prevent cancelling after delivered and enforce ownership for staff
-        String current = entity.getStatus();
-        if ("Cancelled".equalsIgnoreCase(status) && ("Delivered".equalsIgnoreCase(current) || "COMPLETED".equalsIgnoreCase(current))) {
+        if ("CANCELLED".equals(target) && ("DELIVERED".equals(current) || "COMPLETED".equals(current))) {
             throw new RuntimeException("Cannot cancel a delivered delivery");
         }
         var me = authUtil.getCurrentUser();
@@ -99,8 +116,8 @@ public class DeliveryService {
                 throw new RuntimeException("Access denied");
             }
         }
-        entity.setStatus(status);
-        if ("Delivered".equalsIgnoreCase(status) || "COMPLETED".equalsIgnoreCase(status)) {
+        entity.setStatus(target);
+        if ("DELIVERED".equals(target) || "COMPLETED".equals(target)) {
             if (entity.getVehicleUnit() != null) {
                 var unit = entity.getVehicleUnit();
                 unit.setStatus("DELIVERED");
@@ -112,7 +129,7 @@ public class DeliveryService {
                 o.setStatus("COMPLETED");
                 orderRepository.save(o);
             }
-        } else if ("Cancelled".equalsIgnoreCase(status)) {
+        } else if ("CANCELLED".equals(target)) {
             // If cancelled, keep vehicle at current state (likely AT_DEALER). No-op.
         }
         return deliveryMapper.toResponse(deliveryRepository.save(entity));

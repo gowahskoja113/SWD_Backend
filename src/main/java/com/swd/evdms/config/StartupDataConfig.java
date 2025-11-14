@@ -3,12 +3,15 @@ package com.swd.evdms.config;
 import com.swd.evdms.entity.Brand;
 import com.swd.evdms.entity.ElectricVehicle;
 import com.swd.evdms.entity.Role;
+import com.swd.evdms.entity.User;
 import com.swd.evdms.repository.BrandRepository;
 import com.swd.evdms.repository.ElectricVehicleRepository;
 import com.swd.evdms.repository.RoleRepository;
+import com.swd.evdms.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 
@@ -18,7 +21,9 @@ public class StartupDataConfig {
     @Bean
     CommandLineRunner ensureDefaults(RoleRepository roleRepository,
                                      BrandRepository brandRepository,
-                                     ElectricVehicleRepository evRepository) {
+                                     ElectricVehicleRepository evRepository,
+                                     UserRepository userRepository,
+                                     PasswordEncoder passwordEncoder) {
         return args -> {
             // Roles
             boolean hasManager = roleRepository.findAll().stream()
@@ -38,6 +43,32 @@ public class StartupDataConfig {
                 staff.setDescription("Staff");
                 roleRepository.save(staff);
             }
+
+            // Seed default users if missing (for quick demo)
+            Role managerRole = roleRepository.findAll().stream().filter(r -> "manager".equalsIgnoreCase(r.getRoleName())).findFirst().orElse(null);
+            Role staffRole = roleRepository.findAll().stream().filter(r -> "staff".equalsIgnoreCase(r.getRoleName())).findFirst().orElse(null);
+
+            userRepository.findByEmail("manager@demo.local").orElseGet(() -> {
+                User u = new User();
+                u.setName("Demo Manager");
+                u.setEmail("manager@demo.local");
+                u.setPassword(passwordEncoder.encode("123456"));
+                u.setPhoneNumber("0900000001");
+                u.setAddress("HCM");
+                u.setRole(managerRole);
+                return userRepository.save(u);
+            });
+
+            userRepository.findByEmail("staff@demo.local").orElseGet(() -> {
+                User u = new User();
+                u.setName("Demo Staff");
+                u.setEmail("staff@demo.local");
+                u.setPassword(passwordEncoder.encode("123456"));
+                u.setPhoneNumber("0900000002");
+                u.setAddress("HCM");
+                u.setRole(staffRole);
+                return userRepository.save(u);
+            });
 
             // Brand + Models (seed if empty)
             if (evRepository.count() == 0) {

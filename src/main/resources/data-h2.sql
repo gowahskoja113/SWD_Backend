@@ -21,5 +21,13 @@ VALUES (1, 1, NULL, 'ON_ORDER', NULL, NULL, CURRENT_TIMESTAMP(), CURRENT_TIMESTA
 INSERT INTO vehicle_unit (id, model_id, vin, status, arrived_at, delivered_at, created_at, updated_at)
 VALUES (2, 2, NULL, 'ON_ORDER', NULL, NULL, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
 
+-- Units arrived for quick delivery demo
+INSERT INTO vehicle_unit (id, model_id, vin, status, arrived_at, delivered_at, created_at, updated_at)
+VALUES (3, 1, 'JTTESTVIN00000001', 'AT_DEALER', CURRENT_TIMESTAMP(), NULL, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+
 -- Sample vouchers
--- kept minimal to avoid H2 type issues; create via API if needed
+INSERT INTO voucher (code, voucher_type, title, min_price, max_discount, amount, percent, stackable, created_at, usable_from, usable_to)
+VALUES ('FLAT5M', 'FLAT', 'Giảm 5 triệu', 400000000, 5000000, 5000000, NULL, FALSE, CURRENT_TIMESTAMP(), DATEADD('DAY', -7, CURRENT_TIMESTAMP()), DATEADD('DAY', 30, CURRENT_TIMESTAMP()));
+
+INSERT INTO voucher (code, voucher_type, title, min_price, max_discount, amount, percent, stackable, created_at, usable_from, usable_to)
+VALUES ('PCT03', 'PERCENT', 'Giảm 3%', 300000000, 20000000, NULL, 3, TRUE, CURRENT_TIMESTAMP(), DATEADD('DAY', -1, CURRENT_TIMESTAMP()), DATEADD('DAY', 20, CURRENT_TIMESTAMP()));

@@ -67,7 +67,6 @@ public class OrderService {
         var now = java.time.LocalDateTime.now();
         if (v.getUsableFrom() != null && now.isBefore(v.getUsableFrom())) return false;
         if (v.getUsableTo() != null && now.isAfter(v.getUsableTo())) return false;
-        if (!Boolean.TRUE.equals(v.getStackable()) && v.getMaxDiscount() != null && v.getMaxDiscount() < 0) return false;
         if (v.getMinPrice() != null && price.compareTo(java.math.BigDecimal.valueOf(v.getMinPrice())) < 0) return false;
         return v.getCode() != null && (v.getActive() == null || v.getActive());
     }
