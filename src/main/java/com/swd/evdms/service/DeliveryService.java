@@ -87,10 +87,17 @@ public class DeliveryService {
     public DeliveryResponse updateStatus(Long id, String status) {
         var entity = deliveryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Delivery not found"));
-        // prevent cancelling after delivered
+        // prevent cancelling after delivered and enforce ownership for staff
         String current = entity.getStatus();
         if ("Cancelled".equalsIgnoreCase(status) && ("Delivered".equalsIgnoreCase(current) || "COMPLETED".equalsIgnoreCase(current))) {
             throw new RuntimeException("Cannot cancel a delivered delivery");
+        }
+        var me = authUtil.getCurrentUser();
+        boolean isManager = me.getRole() != null && "manager".equalsIgnoreCase(me.getRole().getRoleName());
+        if (!isManager) {
+            if (entity.getOrder() == null || entity.getOrder().getUser() == null || !me.getUserId().equals(entity.getOrder().getUser().getUserId())) {
+                throw new RuntimeException("Access denied");
+            }
         }
         entity.setStatus(status);
         if ("Delivered".equalsIgnoreCase(status) || "COMPLETED".equalsIgnoreCase(status)) {
@@ -141,10 +148,7 @@ public class DeliveryService {
             return deliveryMapper.toResponses(deliveryRepository.findAll());
         }
         return deliveryMapper.toResponses(
-                deliveryRepository.findAll().stream()
-                        .filter(d -> d.getOrder() != null && d.getOrder().getUser() != null
-                                && d.getOrder().getUser().getUserId().equals(current.getUserId()))
-                        .toList()
+                deliveryRepository.findByOrder_User_UserId(current.getUserId())
         );
     }
 }
