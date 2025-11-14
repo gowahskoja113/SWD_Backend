@@ -26,6 +26,7 @@ public class DeliveryService {
     private final DeliveryMapper deliveryMapper;
     private final VehicleUnitRepository unitRepository;
     private final VoucherRepository voucherRepository;
+    private final com.swd.evdms.security.AuthUtil authUtil;
 
     public DeliveryResponse create(DeliveryRequest req) {
         var entity = deliveryMapper.toEntity(req);
@@ -33,6 +34,9 @@ public class DeliveryService {
         var order = orderRepository.findById(req.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         entity.setOrder(order);
+        if (deliveryRepository.existsByOrder_Id(order.getId())) {
+            throw new RuntimeException("Order already has delivery");
+        }
 
         if (req.getVehicleUnitId() == null) {
             throw new RuntimeException("vehicleUnitId is required");
@@ -92,6 +96,11 @@ public class DeliveryService {
                 unit.setDeliveredAt(java.time.LocalDateTime.now());
                 unitRepository.save(unit);
             }
+            if (entity.getOrder() != null) {
+                var o = entity.getOrder();
+                o.setStatus("COMPLETED");
+                orderRepository.save(o);
+            }
         } else if ("Cancelled".equalsIgnoreCase(status)) {
             // If cancelled, keep vehicle at current state (likely AT_DEALER). No-op.
         }
@@ -121,6 +130,17 @@ public class DeliveryService {
     }
 
     public List<DeliveryResponse> listAll() {
-        return deliveryMapper.toResponses(deliveryRepository.findAll());
+        var current = authUtil.getCurrentUser();
+        String role = current.getRole() != null ? String.valueOf(current.getRole().getRoleName()) : "";
+        boolean isManager = "manager".equalsIgnoreCase(role);
+        if (isManager) {
+            return deliveryMapper.toResponses(deliveryRepository.findAll());
+        }
+        return deliveryMapper.toResponses(
+                deliveryRepository.findAll().stream()
+                        .filter(d -> d.getOrder() != null && d.getOrder().getUser() != null
+                                && d.getOrder().getUser().getUserId().equals(current.getUserId()))
+                        .toList()
+        );
     }
 }

@@ -43,7 +43,10 @@ public class OrderService {
 
     // ✅ Lấy tất cả đơn hàng (manager có thể dùng)
     public List<OrderResponse> getAllOrders() {
-        return orderRepository.findAll()
+        User current = authUtil.getCurrentUser();
+        String role = current.getRole() != null ? current.getRole().getRoleName() : "";
+        boolean isManager = "manager".equalsIgnoreCase(role);
+        return (isManager ? orderRepository.findAll() : orderRepository.findByUser_UserId(current.getUserId()))
                 .stream()
                 .map(orderMapper::toResponse)
                 .collect(Collectors.toList());
@@ -60,8 +63,14 @@ public class OrderService {
 
     // ✅ Lấy đơn hàng theo ID (có kiểm tra quyền)
     public OrderResponse getOrderById(Long id) {
+        User current = authUtil.getCurrentUser();
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        String role = current.getRole() != null ? current.getRole().getRoleName() : "";
+        boolean isManager = "manager".equalsIgnoreCase(role);
+        if (!isManager && (order.getUser() == null || !current.getUserId().equals(order.getUser().getUserId()))) {
+            throw new RuntimeException("Access denied");
+        }
         return orderMapper.toResponse(order);
     }
 

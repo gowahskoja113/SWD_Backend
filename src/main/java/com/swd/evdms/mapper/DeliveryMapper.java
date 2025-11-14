@@ -15,6 +15,7 @@ public interface DeliveryMapper {
     // ĐỪNG dùng vehicle.name nếu ElectricVehicle không có field này!
     // Nếu muốn hiển thị tên xe, tạm map từ order.brand (có thật trong Order):
     @Mapping(source = "order.brand", target = "vehicleName")
+    @Mapping(source = "order.user.name", target = "staffName")
     DeliveryResponse toResponse(Delivery delivery);
 
     List<DeliveryResponse> toResponses(List<Delivery> deliveries);
