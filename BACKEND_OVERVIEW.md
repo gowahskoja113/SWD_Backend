@@ -1,63 +1,67 @@
 ## 1. Mục tiêu dự án
 
-- Hệ thống quản lý đại lý xe điện (EV Dealer Management System - `evdms`).
-- Hỗ trợ quản lý:
-  - Xe điện (model, brand, battery, trạng thái…)
-  - Đơn nhập xe từ hãng (purchase order `ManufacturerOrder` + các `VehicleUnit` tạo ra)
-  - Đơn hàng + giao xe cho khách (`Order`, `Delivery`)
-  - Kho xe/vehicle unit, voucher khuyến mãi
-  - Người dùng admin và phân quyền truy cập qua JWT.
+Backend này triển khai hệ thống quản lý đại lý xe điện (EV Dealer Management System - `evdms`), tập trung vào các nghiệp vụ lõi của đại lý:
 
-Backend dùng Spring Boot 3 + Spring Security + Spring Data JPA + H2/MSSQL, expose REST API cho frontend React (`dealership-manager-simple`).
+- Quản lý danh mục xe điện (model, brand, thông số pin, trạng thái…).
+- Quản lý nhập xe từ hãng (purchase order `ManufacturerOrder` → sinh `VehicleUnit` vào kho).
+- Quản lý đơn hàng và giao xe cho khách (`Order` + phiếu giao `Delivery`).
+- Quản lý kho xe/vehicle unit, voucher khuyến mãi.
+- Quản lý người dùng nội bộ (admin/nhân viên) và phân quyền truy cập qua JWT.
+
+Backend dùng Spring Boot 3 + Spring Security + Spring Data JPA + H2/MSSQL, expose REST API cho frontend React (`dealership-manager-simple`) để dựng UI quản lý cho đại lý.
 
 ---
 
 ## 2. Công nghệ chính
 
-- Java 21
-- Spring Boot 3 (`spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-security`)
+- Ngôn ngữ & runtime:
+  - Java 21
+  - Spring Boot 3 (web + security + data JPA)
 - CSDL:
   - Dev/test: H2 in‑memory (`application-h2.properties`)
   - Prod: SQL Server (driver `mssql-jdbc`)
-- Auth:
-  - JWT (`io.jsonwebtoken:jjwt-*`)
-  - `Spring Security` với filter `JwtAuthenticationFilter`
-- ORM:
-  - JPA/Hibernate
+- Bảo mật & auth:
+  - Spring Security (stateless, JWT Bearer)
+  - Thư viện JWT: `io.jsonwebtoken:jjwt-*`
+- Data & mapping:
+  - Spring Data JPA/Hibernate
   - MapStruct / ModelMapper cho mapping DTO ↔ entity
 
 ---
 
 ## 3. Cấu trúc thư mục backend
 
-`src/main/java/com/swd/evdms`
+**Mã nguồn Java** – `src/main/java/com/swd/evdms`
 
-- `EvdmsApplication.java` – class khởi động Spring Boot.
-- `config/` – cấu hình chung (nếu có: CORS, mapper, mail…).
-- `controller/` – REST controller, định nghĩa endpoint:
+- `EvdmsApplication.java` – entry point khởi động Spring Boot.
+- `config/` – cấu hình chung (CORS, mapper, mail…) nếu phát sinh.
+- `controller/` – REST controller, định nghĩa API:
   - `AuthController` – đăng ký, đăng nhập, trả về JWT.
-  - `AdminUserController` – quản lý admin user.
-  - `VehicleController`, `VehicleUnitController` – xe và từng unit xe trong kho.
-  - `ModelController` – model xe.
-  - `PurchaseOrderController`, `OrderController`, `DeliveryController` – quy trình nhập & bán xe.
-  - `VoucherController` – voucher khuyến mãi.
+  - `AdminUserController` – quản lý tài khoản nội bộ (manager/staff).
+  - `VehicleController`, `VehicleUnitController` – danh sách model xe và từng xe cụ thể trong kho.
+  - `ModelController` – CRUD model xe.
+  - `PurchaseOrderController` – API đặt PO từ hãng (`/api/po`).
+  - `OrderController` – API đơn khách (`/api/orders`).
+  - `DeliveryController` – API phiếu giao xe (`/api/deliveries`).
+  - `VoucherController` – CRUD & bật/tắt voucher.
 - `dto/` – DTO request/response trả cho FE (ví dụ: `VehicleResponse`, `DeliveryResponse`, `PurchaseOrderResponse`…).
-- `entity/` – entity JPA map với bảng DB (`ElectricVehicle`, `VehicleUnit`, `ManufacturerOrder`, `Voucher`, …).
-- `repository/` – interface `JpaRepository` để truy vấn DB (ví dụ `VehicleUnitRepository`, `ManufacturerOrderRepository`, `VoucherRepository`…).
+- `entity/` – entity JPA map với bảng DB (`Brand`, `ElectricVehicle`, `VehicleUnit`, `ManufacturerOrder`, `Order`, `Delivery`, `Voucher`, …).
+- `repository/` – interface `JpaRepository` để truy vấn DB (ví dụ `VehicleUnitRepository`, `ManufacturerOrderRepository`, `OrderRepository`, `VoucherRepository`…).
 - `service/` – business logic:
-  - `DeliveryService`, `PurchaseOrderService`, … xử lý quy trình nghiệp vụ.
-  - `JpaUserDetailsService` – load UserDetails cho Spring Security.
-  - `JwtService` – tạo/validate JWT.
+  - `PurchaseOrderService` – xử lý luồng PO từ hãng và sinh `VehicleUnit`.
+  - `OrderService` – xử lý đơn khách, áp voucher.
+  - `DeliveryService` – xử lý phiếu giao, đổi trạng thái vehicle unit + order.
+  - `JpaUserDetailsService`, `AuthService`, `JwtService` – phục vụ auth/bảo mật.
 - `security/` – cấu hình bảo mật:
-  - `SecurityConfig` – cấu hình filter chain, CORS, endpoint public/secure.
-  - `JwtAuthenticationFilter`, `ApiExceptionHandler`, ….
+  - `SecurityConfig` – filter chain, CORS, endpoint public/secure.
+  - `JwtAuthenticationFilter`, `ApiExceptionHandler`, tiện ích auth…
 
-`src/main/resources`
+**Resource & cấu hình** – `src/main/resources`
 
-- `application.properties` – cấu hình chung, set profile đang dùng (`spring.profiles.active=h2`).
-- `application-h2.properties` – cấu hình cho profile `h2` (H2 in‑memory).
-- `schema-h2.sql` – script tạo bảng khi dùng H2.
-- `data-h2.sql` – script seed dữ liệu demo.
+- `application.properties` – cấu hình chung, khai báo profile đang dùng (`spring.profiles.active=h2`).
+- `application-h2.properties` – cấu hình DB H2 cho profile `h2` (dùng khi dev/test).
+- `schema-h2.sql` – script bổ sung schema cho H2 (index, constraint…).
+- `data-h2.sql` – script seed dữ liệu demo (role, brand, vehicle, voucher, vehicle unit mẫu).
 
 ---
 

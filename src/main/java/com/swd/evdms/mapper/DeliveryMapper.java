@@ -12,9 +12,8 @@ public interface DeliveryMapper {
     @Mapping(source = "order.id",   target = "orderId")
     @Mapping(source = "vehicle.id", target = "vehicleId")
     @Mapping(source = "vehicleUnit.id", target = "vehicleUnitId")
-    // ĐỪNG dùng vehicle.name nếu ElectricVehicle không có field này!
-    // Nếu muốn hiển thị tên xe, tạm map từ order.brand (có thật trong Order):
-    @Mapping(source = "order.brand", target = "vehicleName")
+    // Hiển thị mẫu xe: ưu tiên Brand + Model từ vehicle, fallback sang order.brand
+    @Mapping(target = "vehicleName", expression = "java(buildVehicleName(delivery))")
     @Mapping(source = "order.user.name", target = "staffName")
     DeliveryResponse toResponse(Delivery delivery);
 
@@ -33,4 +32,22 @@ public interface DeliveryMapper {
     @Mapping(target = "vehicleUnit",  ignore = true)
     @Mapping(target = "deliveryDate", ignore = true)
     void updateEntity(@MappingTarget Delivery target, DeliveryRequest source);
+
+    default String buildVehicleName(Delivery delivery) {
+        if (delivery == null) return null;
+        String brand = null;
+        String model = null;
+        if (delivery.getVehicle() != null) {
+            model = delivery.getVehicle().getModel();
+            if (delivery.getVehicle().getBrand() != null) {
+                brand = delivery.getVehicle().getBrand().getName();
+            }
+        }
+        if ((brand == null || brand.isBlank()) && delivery.getOrder() != null) {
+            brand = delivery.getOrder().getBrand();
+        }
+        if (brand == null || brand.isBlank()) return model;
+        if (model == null || model.isBlank()) return brand;
+        return brand + " " + model;
+    }
 }
